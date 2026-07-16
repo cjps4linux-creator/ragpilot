@@ -1,4 +1,4 @@
-"""ragpilot — RAG & Knowledge-Systems reference implementation.
+# ragpilot — RAG & Knowledge-Systems reference implementation
 
 Built to demonstrate the exact capability set in an Applied AI Engineer (RAG &
 Knowledge Systems) brief: retrieval-augmented generation over unstructured
@@ -51,4 +51,5 @@ ingest ─▶ chunk ─▶ embed ─▶ store (chunks+embeddings)
 - GET  /graph?entity= — knowledge-graph relations for an entity
 - GET  /eval   — retrieval/answer quality metrics
 - POST /reset  — clear state
-"""
+
+Swap in real adapters (`sentence-transformers` embedder, `pgvector` store, LLM client) by implementing the slots in `ragpilot/adapters.py` — the retrieval, graph, grounding, and eval contracts stay identical.
