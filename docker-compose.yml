@@ -1,0 +1,13 @@
+services:
+  ragpilot:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - MOCK_MODE=true
+      - EMBEDDING_DIM=384
+    volumes:
+      - ./backend/data:/app/backend/data
+    restart: unless-stopped
