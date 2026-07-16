@@ -13,11 +13,11 @@ for mod in [m for m in sys.modules if m == "app" or m.startswith("app.")]:
 os.environ["MOCK_MODE"] = "true"
 os.environ["DB_PATH"] = os.path.join(os.path.dirname(__file__), "test_ragpilot.db")
 
-from ragpilot import store, metrics
-from ragpilot.metrics import metrics as metrics_mod
-from ragpilot.models import Document
-from ragpilot.ingest import ingest
-from ragpilot.retrieval import query
+from ragpilot import store, metrics  # noqa: E402
+from ragpilot.metrics import metrics as metrics_mod  # noqa: E402
+from ragpilot.models import Document  # noqa: E402
+from ragpilot.ingest import ingest  # noqa: E402
+from ragpilot.retrieval import query  # noqa: E402
 
 
 def setup_module(_):
@@ -87,6 +87,41 @@ def test_graph_resolution():
     print(f"PASS graph: {len(paths)} relation(s) for Acme Capital")
 
 
+def test_golden_eval():
+    """Golden-set eval must report non-trivial retrieval + grounding."""
+    from ragpilot import evalset
+    store.reset()
+    metrics_mod.reset()
+    ingest(Document(title="Acme kickoff", source_type="meeting_note", author="Alice",
+                    raw_text="Acme meeting: discussed lead investor Globex and follow-on from Initech. "
+                             "Globex confirmed participation in the Series A."))
+    ingest(Document(title="Northwind CRM", source_type="crm_record", author="Bob",
+                    raw_text="Northwind partnered with Initech on the distribution deal."))
+    ingest(Document(title="Q3 Report", source_type="report", author="Carol",
+                    raw_text="Q3 report shows revenue up 18% quarter over quarter. "
+                             "Globex remains the largest external stakeholder."))
+    res = evalset.run_golden(lambda q, st, e: query(q, st, e))
+    assert res["cases"] == len(evalset.GOLDEN)
+    assert res["mean_grounding"] >= 0.5, f"grounding too low: {res}"
+    assert res["mean_mrr"] > 0, f"retrieval MRR zero: {res}"
+    print(f"PASS golden-eval: {res}")
+
+
+def test_pgvector_backend_skippable():
+    """Runs only when a real Postgres/pgvector DATABASE_URL is provided."""
+    import pytest
+    if not os.getenv("DATABASE_URL"):
+        pytest.skip("DATABASE_URL not set — pgvector backend not exercised")
+    os.environ["VECTOR_BACKEND"] = "pgvector"
+    from ragpilot import store as pgstore
+    pgstore.init()
+    pgstore.reset()
+    pgstore.insert_document(Document(title="PG test", source_type="report",
+                                      raw_text="Postgres pgvector backend works."))
+    assert pgstore.all_chunks()
+    print("PASS pgvector backend: insert + list")
+
+
 if __name__ == "__main__":
     setup_module(None)
     test_ingestion_chunks_entities()
@@ -94,4 +129,6 @@ if __name__ == "__main__":
     test_grounding_citations()
     test_eval_metrics()
     test_graph_resolution()
+    test_golden_eval()
+    test_pgvector_backend_skippable()
     print("\nALL TESTS PASSED")

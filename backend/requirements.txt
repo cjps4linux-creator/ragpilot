@@ -3,3 +3,9 @@ uvicorn>=0.30.0
 pydantic>=2.7.0
 python-multipart>=0.0.9
 numpy>=1.26.0
+
+# Real-mode adapters (optional; mock mode runs with the above only)
+sentence-transformers>=2.7.0      # real embeddings when MOCK_MODE=false
+openai>=1.40.0                    # optional LLM provider
+boto3>=1.34.0                     # optional Amazon Bedrock provider
+psycopg[binary]>=3.1.0            # pgvector backend when VECTOR_BACKEND=pgvector
