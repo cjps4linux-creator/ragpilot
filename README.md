@@ -1,88 +1,153 @@
-# ragpilot — RAG & Knowledge-Systems reference implementation
+# ragpilot
 
-Built to demonstrate the exact capability set in an Applied AI Engineer (RAG &
-Knowledge Systems) brief: retrieval-augmented generation over unstructured
-business data (meeting notes, CRM records), metadata-filtered vector search,
-knowledge-graph relationship mapping, grounded generation with citations, a
-**golden eval harness** (faithfulness / grounding / MRR), and a swappable
-vector backend (SQLite default, **pgvector** for production).
+RAG and knowledge-systems reference implementation — retrieval-augmented generation over unstructured business data with metadata-filtered vector search, knowledge-graph relationship mapping, grounded generation with citations, and a golden eval harness for retrieval and answer quality.
 
-Two modes, one contract:
-- **MOCK_MODE=true** (default): deterministic hashed embeddings + templated
-  grounded answers. Zero dependencies, no model/GPU, no cloud — runs anywhere.
-- **MOCK_MODE=false**: real `sentence-transformers` embeddings + an LLM
-  (OpenAI or **Amazon Bedrock** Converse API). The retrieval / graph /
-  grounding / eval contracts stay identical — only the adapters change.
+Built by Conrad CJ Wilson.
 
-## Run (zero-dependency, mock mode)
-```bash
-pip install -r backend/requirements.txt
-cd backend && python -m uvicorn ragpilot.main:app --port 8000
-curl -X POST http://localhost:8000/ingest -H 'content-type: application/json' \
-  -d '{"title":"Q3 investor sync","raw_text":"Acme Capital led the Series B. Northwind Partners co-invested.","source_type":"meeting_note","author":"Carlos"}'
-curl -X POST http://localhost:8000/query -H 'content-type: application/json' \
-  -d '{"question":"Who led the Series B?","entity":"Acme Capital"}'
-curl http://localhost:8000/eval/golden   # runs the golden eval set
+## What It Demonstrates
+
+| Capability | Implementation |
+|---|---|
+| Document ingestion | Chunking with entity extraction and source-type metadata |
+| Embedding pipeline | Swappable embedder (mock deterministic for zero-dependency mode, `sentence-transformers` for production) |
+| Vector search | Cosine similarity with metadata filtering (author, source type, date range) |
+| Knowledge graph | Entity relationship mapping with graph path retrieval |
+| Grounded generation | LLM answers with mandatory citation gates and faithfulness checks |
+| Evaluation harness | Golden eval measuring MRR, grounding rate, and faithfulness |
+| Swappable backends | SQLite (local/development) and pgvector (production) with identical contracts |
+| Dual LLM providers | OpenAI and Amazon Bedrock Converse API adapters |
+| Zero-dependency mode | Deterministic hashed embeddings and templated answers — no model, GPU, or cloud required |
+
+## Stack
+
+| Layer | Tooling |
+|---|---|
+| Language | Python 3.11 |
+| API | FastAPI + uvicorn |
+| Vector store | SQLite (local) / PostgreSQL + pgvector (production) |
+| Embeddings | Mock (deterministic hash) / `sentence-transformers` (all-MiniLM-L6-v2) |
+| LLM | OpenAI Chat Completions / Amazon Bedrock Converse |
+| Evaluation | Custom golden eval harness (MRR, grounding, faithfulness) |
+| Deployment | Procfile, railway.toml, Dockerfile, Docker Compose |
+| Testing | pytest with contract fixtures |
+
+## Architecture
+
+```
+                    ingest ──▶ chunk ──▶ embed ──▶ store
+                                                   │
+                    query ──▶ embed ──▶ retrieve ◄──┘
+                                                   │
+                                         graph_paths
+                                                   │
+                                         grounded generate
+                                                   │
+                                   eval ◄── answer + citations
 ```
 
-## Real embeddings + pgvector (production)
+### Data flow
+
+1. **Ingest**: Raw document text is chunked, entities are extracted, and embeddings are generated.
+2. **Store**: Chunks and embeddings are persisted to SQLite or pgvector with metadata filters.
+3. **Retrieve**: Queries are embedded and matched against the vector store with optional metadata constraints.
+4. **Graph**: Related entities are traversed to enrich retrieval context.
+5. **Generate**: The LLM produces a grounded answer with required citations from retrieved sources.
+6. **Eval**: The golden eval harness measures retrieval recall (MRR) and answer quality (faithfulness, grounding).
+
+## Quick Start
+
+### Zero-dependency mode (default)
+
+```bash
+git clone https://github.com/cjps4linux-creator/ragpilot.git
+cd ragpilot/backend
+pip install -r requirements.txt
+python -m uvicorn ragpilot.main:app --port 8000
+```
+
+No API keys, models, or databases required. `MOCK_MODE=true` uses deterministic hashed embeddings.
+
+### Production mode
+
 ```bash
 export MOCK_MODE=false
 export VECTOR_BACKEND=pgvector
-export DATABASE_URL=postgresql://user:pass@host:5432/ragpilot
+export DATABASE_URL=postgresql://user:password@host:5432/ragpilot
 export EMBED_MODEL=all-MiniLM-L6-v2
-# optional LLM providers:
-export OPENAI_API_KEY=sk-...            # OR
-export AWS_REGION=us-east-1             # + BEDROCK_MODEL=anthropic.claude-v2
+export OPENAI_API_KEY=sk-...
+# OR for Bedrock:
+export AWS_REGION=us-east-1
+export BEDROCK_MODEL=anthropic.claude-v2
+
 cd backend && python -m uvicorn ragpilot.main:app --port 8000
 ```
-pgvector requires the `vector` extension on the DB (auto-created on `init()`).
 
-## Deploy (Railway / Render / any PaaS)
-- `Procfile` and `railway.toml` are included. Set `MOCK_MODE`, `VECTOR_BACKEND`,
-  `DATABASE_URL` as platform env vars. `railway up` builds the Dockerfile and
-  health-checks `/health`.
-- Default `sqlite` backend needs no database — deploys with zero config.
+## API Endpoints
 
-## Architecture
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/ingest` | Ingest a document (meeting note, CRM record, report) |
+| POST | `/query` | RAG query (returns grounded answer + citations + graph paths) |
+| GET | `/graph?entity=` | Knowledge-graph relations for an entity |
+| GET | `/eval` | Retrieval and answer quality metrics |
+| GET | `/eval/golden` | Run the full golden eval suite |
+| POST | `/reset` | Clear all ingested state |
+
+## Evaluation
+
+The golden eval harness runs a held-out question/answer set and reports:
+
+- **MRR (Mean Reciprocal Rank)**: How high the correct source appears in retrieval results
+- **Grounding rate**: Percentage of answers backed by retrieved citations
+- **Faithfulness**: Whether the generated answer is supported by the cited sources (lexical-overlap proxy in this version)
+
+Run evaluation:
+
+```bash
+curl http://localhost:8000/eval/golden
 ```
-ingest ─▶ chunk ─▶ embed (mock | sentence-transformers) ─▶ store (sqlite | pgvector)
-                                      │
-   query ─▶ embed ─▶ retrieve (vector sim + metadata filter)
-                                      │
-                            graph_paths (entity relations)
-                                      │
-                       generate (grounded, citations)
-                                      │
-         eval (MRR, grounding rate, faithfulness)  +  /eval/golden (held-out set)
+
+## Mapping to the JD
+
+| JD Requirement | ragpilot Implementation |
+|---|---|
+| RAG pipelines for knowledge retrieval | `retrieval.query` with vector + metadata search |
+| Extract insights from unstructured data | `ingest` with chunking and entity extraction |
+| Hybrid search / re-ranking | `store.retrieve` with cosine similarity and metadata filter |
+| Hallucination control / grounded generation | Citation gate + `evalset` faithfulness check |
+| Agent / eval frameworks | `evalset.run_golden` with MRR and grounding metrics |
+| Cloud deployment readiness | Docker, Procfile, railway.toml, adapter factory for OpenAI/Bedrock |
+| Knowledge graph / relationship mapping | `store.add_edge` and `graph_paths` |
+| Reliable source attribution | `Answer.citations` on every response |
+
+## Honest Limitations
+
+- Mock-mode embeddings are **lexical hashes**, not semantic vectors. The golden MRR reflects that ceiling. Real `sentence-transformers` embeddings substantially improve retrieval quality and are a one-line environment change (`MOCK_MODE=false`).
+- Faithfulness scoring uses lexical overlap as a proxy. Production systems should integrate an NLI/entailment scorer for higher accuracy. The harness is structured so that swap is local to `evalset.faithfulness`.
+- Knowledge-graph relationships are simple entity co-occurrence in this version. Production deployments should add typed relationships and graph traversal depth limits.
+- No authentication or authorization is implemented. The platform is designed to integrate with an API gateway or reverse proxy for production access control.
+
+## Deployment
+
+### Railway / Render
+
+Procfile and railway.toml are included. Set `MOCK_MODE`, `VECTOR_BACKEND`, `DATABASE_URL`, and LLM provider keys as platform environment variables. The health check endpoint `/health` is used for deployment verification.
+
+### Docker
+
+```bash
+docker build -f backend/Dockerfile -t ragpilot:latest .
+docker run --rm -p 8000:8000 ragpilot:latest
 ```
 
-## Maps to the JD
-- RAG pipelines for investor intelligence .......... `retrieval.query`
-- Extract insights from unstructured ............... `ingest` (chunk + entity extraction)
-- Hybrid search / re-ranking ....................... `store.retrieve` (cosine + metadata)
-- Hallucination control / grounding ............... `retrieval` citation gate + `evalset`
-- Agent / eval frameworks ......................... `evalset.run_golden` (MRR/faithfulness)
-- Cloud deploy (Bedrock-class) ................... `adapters._llm_complete` (OpenAI/Bedrock)
+## Current State
 
-## Honest limitations
-- MOCK_MODE embeddings are **lexical**, not semantic — the golden MRR reflects
-  that ceiling. Real `sentence-transformers` embeddings raise retrieval quality
-  substantially (swap is a one-line env change).
-- Faithfulness is a lexical-overlap proxy; production swaps in an NLI/entailment
-  scorer. The harness is built so that swap is local to `evalset.faithfulness`.
-- Embeddings + vector search + metadata filter .. `store.retrieve`
-- Knowledge graph / relationship mapping .......... `store.add_edge` / `graph_paths`
-- Reliable source attribution .................... `Answer.citations`
-- Minimize hallucination ........................ `grounded` flag + citation requirement
-- Evaluate retrieval + answer quality ........... `evaluation.EvalMetrics`
-- CRM integration pattern ....................... see sibling repo `leadpilot`
+Functional reference implementation with a complete RAG pipeline, dual-mode embeddings, knowledge graph, eval harness, and production deployment configuration. The platform runs in zero-dependency mock mode for evaluation and switches to real embeddings and LLM providers with environment configuration.
 
-## Endpoints
-- POST /ingest — ingest a document (meeting note / CRM record / report)
-- POST /query  — RAG query (returns grounded Answer + citations + graph paths)
-- GET  /graph?entity= — knowledge-graph relations for an entity
-- GET  /eval   — retrieval/answer quality metrics
-- POST /reset  — clear state
+## License
 
-Swap in real adapters (`sentence-transformers` embedder, `pgvector` store, LLM client) by implementing the slots in `ragpilot/adapters.py` — the retrieval, graph, grounding, and eval contracts stay identical.
+MIT — use, modify, and ship freely.
+
+**Author:** Conrad CJ Wilson
+**GitHub:** https://github.com/cjps4linux-creator
+**LinkedIn:** https://www.linkedin.com/in/conradcjwilson
