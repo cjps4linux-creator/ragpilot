@@ -1,28 +1,28 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+# Removed Optional in favor of X | None
 import datetime
 
 
 class Document(BaseModel):
     """A source doc (meeting note, CRM record, report)."""
-    id: Optional[int] = None
+    id: int | None = None
     source_type: str = "meeting_note"   # meeting_note | crm_record | report
     title: str
     raw_text: str
-    author: Optional[str] = None
+    author: str | None = None
     created_at: str = Field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
     meta: dict = Field(default_factory=dict)
 
 
 class Chunk(BaseModel):
     """A retrievable unit with embedding + metadata for filtered vector search."""
-    id: Optional[int] = None
+    id: int | None = None
     doc_id: int
     text: str
     embedding: list[float] = Field(default_factory=list)
     source_type: str
-    entity: Optional[str] = None       # e.g. investor/company name for graph
-    author: Optional[str] = None
+    entity: str | None = None       # e.g. investor/company name for graph
+    author: str | None = None
     # populated at query time
     score: float = 0.0
     cited: bool = False
@@ -32,7 +32,7 @@ class Citation(BaseModel):
     chunk_id: int
     snippet: str
     source_type: str
-    entity: Optional[str] = None
+    entity: str | None = None
 
 
 class Answer(BaseModel):
