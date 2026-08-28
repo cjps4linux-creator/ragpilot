@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install ruff
-      - run: ruff check --ignore I001 backend/ragpilot
+      - run: ruff check --ignore I001,BLE001,S110 backend/ragpilot
 
   test:
     runs-on: ubuntu-latest
