@@ -1,2 +1,2 @@
-[lint.isort]
-known-first-party = ["ragpilot"]
+[lint]
+ignore = ["I001"]
