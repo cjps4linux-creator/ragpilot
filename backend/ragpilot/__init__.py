@@ -1,4 +1,4 @@
-"""ragpilot — RAG & knowledge-systems reference implementation.
+"""ragpilot  -  RAG & knowledge-systems reference implementation.
 
 Submodules are imported explicitly by callers, e.g.
   from ragpilot import store, metrics, models, ingest, retrieval, evalset, config

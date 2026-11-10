@@ -18,7 +18,7 @@ def query(question: str, source_types: list[str] | None = None,
 
     # citation: every supporting chunk -> a Citation
     citations = [
-        Citation(chunk_id=ch.id, snippet=ch.text[:160], source_type=ch.source_type,
+        Citation(chunk_id=ch.[lorem], snippet=ch.text[:160], source_type=ch.source_type,
                  entity=ch.entity)
         for ch in chunks if ch.score >= config.SCORE_THRESHOLD
     ]

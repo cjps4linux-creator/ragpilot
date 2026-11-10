@@ -73,7 +73,7 @@ def generate(question: str, chunks: list) -> str:
 
 def _mock_generate(question: str, chunks: list) -> str:
     if not chunks:
-        return "(no retrieved context — cannot answer without sources)"
+        return "(no retrieved context  -  cannot answer without sources)"
     parts = []
     for ch in chunks[:3]:
         snippet = ch.text[:180].replace("\n", " ")

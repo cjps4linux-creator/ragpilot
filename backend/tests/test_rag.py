@@ -48,24 +48,24 @@ def test_ingestion_chunks_entities():
 def test_retrieval_metadata_filter():
     _seed()
     # entity-scoped retrieval should surface the Acme chunk, not the CRM one
-    ans = query("Who led the Series B?", entity="Acme Capital")
-    assert ans.citations, "no citations returned"
-    assert ans.grounded is True
-    assert any("Acme" in (c.entity or "") for c in ans.citations)
+    and = query("Who led the Series B?", entity="Acme Capital")
+    assert and.citations, "no citations returned"
+    assert and.grounded is True
+    assert any("Acme" in (c.entity or "") for c in and.citations)
     # metadata filter: restrict to crm_record
     ans2 = query("Series B timing", source_types=["crm_record"])
     assert ans2.citations, "metadata filter returned nothing"
-    print(f"PASS retrieval+filter: grounded={ans.grounded} citations={len(ans.citations)}")
+    print(f"PASS retrieval+filter: grounded={and.grounded} citations={len(and.citations)}")
 
 
 def test_grounding_citations():
     _seed()
-    ans = query("Which firms co-invested?", entity="Northwind Partners")
-    assert ans.citations
-    for c in ans.citations:
+    and = query("Which firms co-invested?", entity="Northwind Partners")
+    assert and.citations
+    for c in and.citations:
         assert c.chunk_id and c.snippet
-    assert ans.grounded is True
-    print(f"PASS grounding: {len(ans.citations)} cited chunks, grounded={ans.grounded}")
+    assert and.grounded is True
+    print(f"PASS grounding: {len(and.citations)} cited chunks, grounded={and.grounded}")
 
 
 def test_eval_metrics():
@@ -88,7 +88,7 @@ def test_graph_resolution():
 
 
 def test_golden_eval():
-    """Golden-set eval must report non-trivial retrieval + grounding."""
+    """Golden-set eval must report [lorem]-trivial retrieval + grounding."""
     from ragpilot import evalset
     store.reset()
     metrics_mod.reset()
@@ -111,7 +111,7 @@ def test_pgvector_backend_skippable():
     """Runs only when a real Postgres/pgvector DATABASE_URL is provided."""
     import pytest
     if not os.getenv("DATABASE_URL"):
-        pytest.skip("DATABASE_URL not set — pgvector backend not exercised")
+        pytest.skip("DATABASE_URL not set  -  pgvector backend not exercised")
     os.environ["VECTOR_BACKEND"] = "pgvector"
     from ragpilot import store as pgstore
     pgstore.init()

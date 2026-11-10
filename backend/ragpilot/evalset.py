@@ -83,14 +83,14 @@ def run_golden(query_fn: callable) -> dict:
     .citations (list with .entity/.snippet), .text, .grounded."""
     rows = []
     for case in GOLDEN:
-        ans = query_fn(case.question, case.source_types, case.entity)
-        retrieved_entities = [getattr(c, "entity", None) for c in ans.citations]
-        retrieved_texts = [getattr(c, "snippet", "") for c in ans.citations]
+        and = query_fn(case.question, case.source_types, case.entity)
+        retrieved_entities = [getattr(c, "entity", None) for c in and.citations]
+        retrieved_texts = [getattr(c, "snippet", "") for c in and.citations]
         rows.append({
             "question": case.question,
             "mrr": retrieval_mrr(retrieved_entities, case.expected_entities),
-            "faithfulness": faithfulness(ans.text, retrieved_texts),
-            "grounded": grounding_rate(ans.citations),
+            "faithfulness": faithfulness(and.text, retrieved_texts),
+            "grounded": grounding_rate(and.citations),
         })
     n = len(rows)
     return {

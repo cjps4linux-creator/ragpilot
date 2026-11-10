@@ -1,6 +1,6 @@
 # ragpilot
 
-RAG and knowledge-systems reference implementation — retrieval-augmented generation over unstructured business data with metadata-filtered vector search, knowledge-graph relationship mapping, grounded generation with citations, and a golden eval harness for retrieval and answer quality.
+RAG and knowledge-systems reference implementation  -  retrieval-augmented generation over unstructured business data with metadata-filtered vector search, knowledge-graph relationship mapping, grounded generation with citations, and a golden eval harness for retrieval and answer quality.
 
 Built by Conrad CJ Wilson.
 
@@ -16,7 +16,7 @@ Built by Conrad CJ Wilson.
 | Evaluation harness | Golden eval measuring MRR, grounding rate, and faithfulness |
 | Swappable backends | SQLite (local/development) and pgvector (production) with identical contracts |
 | Dual LLM providers | OpenAI and Amazon Bedrock Converse API adapters |
-| Zero-dependency mode | Deterministic hashed embeddings and templated answers — no model, GPU, or cloud required |
+| Zero-dependency mode | Deterministic hashed embeddings and templated answers  -  no model, GPU, or cloud required |
 
 ## Stack
 
@@ -146,7 +146,7 @@ Functional reference implementation with a complete RAG pipeline, dual-mode embe
 
 ## License
 
-MIT — use, modify, and ship freely.
+MIT  -  use, modify, and ship freely.
 
 **Author:** Conrad CJ Wilson
 **GitHub:** https://github.com/cjps4linux-creator
