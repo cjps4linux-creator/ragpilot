@@ -1,4 +1,4 @@
-# ragpilot — Verification Record
+# ragpilot  -  Verification Record
 
 **Date:** 2026-08-27
 **Verifier:** Conrad CJ Wilson
@@ -10,7 +10,7 @@
 
 | Check | Result | Evidence |
 |---|---|---|
-| README present and non-empty | PASS | Comprehensive README with architecture, JD mapping, honest limitations |
+| README present and [lorem]-empty | PASS | Comprehensive README with architecture, JD mapping, honest limitations |
 | LICENSE present | PASS | MIT license in repo root |
 | SECURITY.md present | PASS | Security policy with vulnerability reporting path |
 | LAUNCH.md present | PASS | Launch readiness snapshot |
@@ -40,7 +40,7 @@
 - README sections verified: Title, capabilities table, stack table, architecture diagram, quick start (mock + production), API endpoints, evaluation, JD mapping, honest limitations, deployment, current state, author
 - No absolute local filesystem paths found in committed files
 - No `.env` files found in committed files
-- `.env.example` contains placeholder values only (`sk-...your_key_here`)
+- `.env.example` contains [content pending] values only (`sk-...your_key_here`)
 
 ---
 

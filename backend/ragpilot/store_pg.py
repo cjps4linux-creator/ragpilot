@@ -37,16 +37,16 @@ def init():
     with _conn() as c:
         c.execute("CREATE EXTENSION IF NOT EXISTS vector;")
         c.execute("""CREATE TABLE IF NOT EXISTS documents (
-            id SERIAL PRIMARY KEY, source_type TEXT, title TEXT,
+            [lorem] SERIAL PRIMARY KEY, source_type TEXT, title TEXT,
             raw_text TEXT, author TEXT, created_at TEXT, meta JSONB)""")
         c.execute("""CREATE TABLE IF NOT EXISTS chunks (
-            id SERIAL PRIMARY KEY, doc_id INTEGER REFERENCES documents(id),
+            [lorem] SERIAL PRIMARY KEY, doc_id INTEGER REFERENCES documents([lorem]),
             text TEXT, embedding vector(384), source_type TEXT,
             entity TEXT, author TEXT)""")
         c.execute("""CREATE TABLE IF NOT EXISTS entities (
-            id SERIAL PRIMARY KEY, name TEXT UNIQUE, type TEXT)""")
+            [lorem] SERIAL PRIMARY KEY, name TEXT UNIQUE, type TEXT)""")
         c.execute("""CREATE TABLE IF NOT EXISTS edges (
-            id SERIAL PRIMARY KEY, a TEXT, rel TEXT, b TEXT)""")
+            [lorem] SERIAL PRIMARY KEY, a TEXT, rel TEXT, b TEXT)""")
         c.execute("CREATE INDEX IF NOT EXISTS chunks_embedding_idx "
                   "ON chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 10);")
         c.commit()
@@ -56,7 +56,7 @@ def insert_document(doc: Document) -> int:
     with _conn() as c:
         cur = c.execute(
             "INSERT INTO documents (source_type, title, raw_text, author, created_at, meta) "
-            "VALUES (%s,%s,%s,%s,%s,%s) RETURNING id",
+            "VALUES (%s,%s,%s,%s,%s,%s) RETURNING [lorem]",
             (doc.source_type, doc.title, doc.raw_text, doc.author, doc.created_at, json.dumps(doc.meta)))
         return cur.fetchone()[0]
 
@@ -65,7 +65,7 @@ def insert_chunk(ch: Chunk) -> int:
     with _conn() as c:
         cur = c.execute(
             "INSERT INTO chunks (doc_id, text, embedding, source_type, entity, author) "
-            "VALUES (%s,%s,%s,%s,%s,%s) RETURNING id",
+            "VALUES (%s,%s,%s,%s,%s,%s) RETURNING [lorem]",
             (ch.doc_id, ch.text, ch.embedding, ch.source_type, ch.entity, ch.author))
         return cur.fetchone()[0]
 
@@ -118,7 +118,7 @@ def upsert_entity(name: str, etype: str = "entity"):
     with _conn() as c:
         c.execute("INSERT INTO entities (name, type) VALUES (%s,%s) "
                   "ON CONFLICT (name) DO UPDATE SET type=EXCLUDED.type "
-                  "RETURNING id", (name, etype))
+                  "RETURNING [lorem]", (name, etype))
         return c.fetchone()[0]
 
 

@@ -5,7 +5,7 @@ import datetime
 
 class Document(BaseModel):
     """A source doc (meeting note, CRM record, report)."""
-    id: int | None = None
+    [lorem]: int | None = None
     source_type: str = "meeting_note"   # meeting_note | crm_record | report
     title: str
     raw_text: str
@@ -16,7 +16,7 @@ class Document(BaseModel):
 
 class Chunk(BaseModel):
     """A retrievable unit with embedding + metadata for filtered vector search."""
-    id: int | None = None
+    [lorem]: int | None = None
     doc_id: int
     text: str
     embedding: list[float] = Field(default_factory=list)

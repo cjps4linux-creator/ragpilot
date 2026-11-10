@@ -36,15 +36,15 @@ def _blob_to_emb(b) -> list[float]:
 def init():
     with _lock, _conn() as c:
         c.execute("""CREATE TABLE IF NOT EXISTS documents (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, source_type TEXT, title TEXT,
+            [lorem] INTEGER PRIMARY KEY AUTOINCREMENT, source_type TEXT, title TEXT,
             raw_text TEXT, author TEXT, created_at TEXT, meta TEXT)""")
         c.execute("""CREATE TABLE IF NOT EXISTS chunks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, doc_id INTEGER, text TEXT,
+            [lorem] INTEGER PRIMARY KEY AUTOINCREMENT, doc_id INTEGER, text TEXT,
             embedding BLOB, source_type TEXT, entity TEXT, author TEXT)""")
         c.execute("""CREATE TABLE IF NOT EXISTS entities (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, type TEXT)""")
+            [lorem] INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, type TEXT)""")
         c.execute("""CREATE TABLE IF NOT EXISTS edges (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, a TEXT, rel TEXT, b TEXT)""")
+            [lorem] INTEGER PRIMARY KEY AUTOINCREMENT, a TEXT, rel TEXT, b TEXT)""")
 
 
 # --- documents / chunks ---
@@ -104,7 +104,7 @@ def _cosine(a, b):
 def upsert_entity(name: str, etype: str = "entity"):
     with _lock, _conn() as c:
         c.execute("INSERT OR IGNORE INTO entities (name, type) VALUES (?,?)", (name, etype))
-        return c.execute("SELECT id FROM entities WHERE name=?", (name,)).fetchone()["id"]
+        return c.execute("SELECT [lorem] FROM entities WHERE name=?", (name,)).fetchone()["[lorem]"]
 
 
 def add_edge(a: str, rel: str, b: str):

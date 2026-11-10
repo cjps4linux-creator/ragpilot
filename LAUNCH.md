@@ -1,4 +1,4 @@
-# ragpilot — Launch Readiness
+# ragpilot  -  Launch Readiness
 
 **Date:** 2026-08-27
 **Owner:** Conrad CJ Wilson
@@ -15,7 +15,7 @@
 | Tests passing | Pending | pytest suite in `backend/tests/` |
 | Security scan | Pending | SECURITY.md in place |
 | README complete | Complete | Architecture, JD mapping, honest limitations |
-| LICENSE | Complete | MIT — Conrad CJ Wilson |
+| LICENSE | Complete | MIT  -  Conrad CJ Wilson |
 | Docker build | Complete | Dockerfile, docker-compose.yml, Procfile present |
 | Deployment config | Complete | railway.toml for one-click PaaS deploy |
 
@@ -50,4 +50,4 @@
 
 ## Contact
 
-Conrad CJ Wilson — conradcjwilson0@gmail.com
+Conrad CJ Wilson  -  conradcjwilson0@gmail.com
